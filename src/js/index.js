@@ -41,9 +41,10 @@ const controlSearch = async () => {
         clearLoader();
         //Render results on UI
         const recipeArr = state.search.results.map(arrResult => {
+           
             return arrResult.recipe;
         })
-        
+        //console.log(state.recipeArr.length)
         searchView.renderResults(recipeArr)
     }
 
@@ -54,5 +55,23 @@ elements.searchForm.addEventListener('submit', e => {
 })
 //const search = new Search('pizza')
 //console.log(search.getResults().then)
+
+elements.searchResPages.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-inline')
+    
+    if (btn) {
+        //console.log(state.recipeArr.length)
+        const gotoPage = parseInt(btn.dataset.goto, 10);
+        searchView.clearResults();
+        const recipeArr = state.search.results.map(arrResult => {
+           
+            return arrResult.recipe;
+        })
+        searchView.renderResults(recipeArr, gotoPage)
+        console.log(gotoPage)
+    }
+})
+
+
 
 
