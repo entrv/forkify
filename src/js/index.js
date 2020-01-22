@@ -16,7 +16,9 @@
 
 import Search from './models/Search'
 import * as searchView from './views/searchView'
-import {elements, rederLoader,clearLoader} from './views/base'
+import * as recipeView from './views/recipeView'
+import {elements, renderLoader,clearLoader} from './views/base'
+import Recipe from './models/Recipe'
 /**
  * -search object
  * current recipe object
@@ -25,6 +27,8 @@ import {elements, rederLoader,clearLoader} from './views/base'
  */
 
 const state = {}
+
+/**search control */
 const controlSearch = async () => {
    const query = searchView.getInput();
   
@@ -34,18 +38,24 @@ const controlSearch = async () => {
         //prepare ud for result
         searchView.clearInput();
         searchView.clearResults();
-        rederLoader(elements.searchRes)
-        //search for recipes
-        await state.search.getResults()
+        renderLoader(elements.searchRes)
 
-        clearLoader();
-        //Render results on UI
-        const recipeArr = state.search.results.map(arrResult => {
-           
-            return arrResult.recipe;
-        })
-        //console.log(state.recipeArr.length)
-        searchView.renderResults(recipeArr)
+        try {
+            //search for recipes
+            await state.search.getResults()
+
+            clearLoader();
+            //Render results on UI
+            const recipeArr = state.search.results.map(arrResult => {
+            
+                return arrResult.recipe;
+            })
+            //console.log(state.recipeArr.length)
+            searchView.renderResults(recipeArr)
+        } catch (err) {
+            alert('Something query Error')
+            clearLoader();
+        }
     }
 
 }
@@ -53,6 +63,13 @@ elements.searchForm.addEventListener('submit', e => {
     e.preventDefault()
     controlSearch()
 })
+
+//TESTING
+elements.searchForm.addEventListener('submit', e => {
+    e.preventDefault()
+    controlSearch()
+})
+
 //const search = new Search('pizza')
 //console.log(search.getResults().then)
 
@@ -68,10 +85,51 @@ elements.searchResPages.addEventListener('click', (e) => {
             return arrResult.recipe;
         })
         searchView.renderResults(recipeArr, gotoPage)
-        console.log(gotoPage)
+        
     }
 })
 
 
+/*recepi controll*/
 
+// const r = new Recipe(44556)
+// r.getRecipe();
+// console.log(r)
+const controlRecipe = async () => {
+    //get id from url
+    const id= window.location.hash.replace('#', '');
+    console.log(id);
 
+    if (id) {
+        //prepare UI
+        recipeView.clearRecipe();
+        renderLoader(elements.recipe)
+
+        //create new recipe object
+        state.recipe = new Recipe(id)
+        try {
+            //get recipe data
+            
+            await state.recipe.getRecipe();
+            state.recipe.parseIngredients();
+            //cacluation serving and time
+            state.recipe.calcTime();
+            state.recipe.calcServings();
+            //render recipe
+
+            clearLoader();
+            recipeView.renderRecipe(state.recipe);
+
+            
+        } catch(err) {
+            alert('Error processing id ' + err);
+
+        }
+    }
+}
+
+//window.addEventListener('hashchange', controlRecipe);
+//window.addEventListener('load', controlRecipe);
+['hashchange','load'].forEach(event => {
+    window.addEventListener(event, controlRecipe)
+})
