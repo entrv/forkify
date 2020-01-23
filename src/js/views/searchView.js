@@ -14,6 +14,10 @@ export const clearInput = () => {
     
 }
 
+export const highlightSelected= id => {
+    document.querySelector(`a[href="#${id}]"`).classList.add('results__link--active')
+}
+
 //'pasta with tomato and spinach
 // acc : 0 / acc+cur.length = 5 / newTitle = ['pasta']
 // acc : 5 / acc+cur.length = 9 / newTitle = ['pasta','with']
@@ -36,7 +40,7 @@ const limitRecipeTitle = (title, limit = 17) => {
 const renderRecipe = recipe => {
     const markup = `
     <li>
-                    <a class="results__link results__link--active" href="#${recipe.source}">
+                    <a class="results__link " href="#${recipe.source}">
                         <figure class="results__fig">
                             <img src="${recipe.image}" alt="Test">
                         </figure>
