@@ -17,8 +17,13 @@
 import Search from './models/Search'
 import * as searchView from './views/searchView'
 import * as recipeView from './views/recipeView'
+import * as listView from './views/listView'
+import * as likesView from './views/likesView'
 import {elements, renderLoader,clearLoader} from './views/base'
 import Recipe from './models/Recipe'
+import List from './models/List'
+import Likes from './models/Likes'
+
 /**
  * -search object
  * current recipe object
@@ -27,7 +32,7 @@ import Recipe from './models/Recipe'
  */
 
 const state = {}
-
+window.state = state;
 /**search control */
 const controlSearch = async () => {
    const query = searchView.getInput();
@@ -120,10 +125,14 @@ const controlRecipe = async () => {
             //render recipe
 
             clearLoader();
-            recipeView.renderRecipe(state.recipe);
+            recipeView.renderRecipe(
+                state.recipe,
+                state.likes.isLiked(id)
+                );
 
             
         } catch(err) {
+            console.log(err)
             alert('Error processing id ' + err);
 
         }
@@ -135,3 +144,117 @@ const controlRecipe = async () => {
 ['hashchange','load'].forEach(event => {
     window.addEventListener(event, controlRecipe)
 })
+
+const controlList = () => {
+    // create new list if there is not yet
+    if (!state.list) state.list = new List();
+
+
+    //add each ingredient
+    state.recipe.ingredients.forEach(el => {
+        const item = state.list.addItem(el.count, el.unit, el.ingredient)
+        console.log(item)
+        listView.renderItem(item);
+    })
+
+
+}
+
+// handle delete and update list item events
+
+elements.shopping.addEventListener('click', e=> {
+    const id = e.target.closest('.shopping__item').dataset.itemid;
+    
+    if (e.target.matches('.shopping__delete, .shopping__delete *')) {
+        console.log('shopping__delete')
+        state.list.deleteItem(id);
+
+        listView.deleteItem(id);
+    } else if (e.target.matches('.shopping__count-value')) {
+        console.log('shopping__count-value')
+        const val = parseInt(e.target.value, 10);
+        state.list.updateCount(id, val);
+    }
+})
+
+
+
+//restore liked recipes
+
+window.addEventListener('load', () => {
+    
+    state.likes = new Likes();
+    
+    state.likes.readStorage();
+    console.log('state.likes.getNumLikes' + state.likes.getNumLikes)
+    likesView.toggleLikeMenu(state.likes.getNumLikes())
+
+    //render the existing likes
+    state.likes.likes.forEach(like => likesView.renderLike(like))
+})
+
+/**
+ * Like controller
+ */
+
+const controlLike = () => {
+    if (!state.likes) state.likes = new Likes();
+    const currentId = state.recipe.id;
+
+    //user has not yet liked
+    if (!state.likes.isLiked(currentId)) {
+        //add like to the state
+        const newLike = state.likes.addLike(
+            currentId,
+            state.recipe.title,
+            state.recipe.author,
+            state.recipe.img
+        )
+        //toggle button like
+        likesView.toggleLikeBtn(true)
+        //add like to ui list
+
+        likesView.renderLike(newLike)
+        
+    } else {
+        //user has liked
+        //remove like button
+        state.likes.deleteLike(currentId)
+
+        //toggle like button
+        likesView.toggleLikeBtn(false)
+        //remove like from ui list
+        likesView.deleteLike(currentId)
+    }
+
+    likesView.toggleLikeMenu(state.likes.getNumLikes())
+    
+}
+
+
+//handling recipe button class
+elements.recipe.addEventListener('click', e => {
+    if (e.target.matches('.btn-decrease, .btn-decrease *')) {
+        //decrease button is click
+        if (state.recipe.servings > 1) {
+            state.recipe.updateServings('dec')
+            recipeView.updateServingsIngredients(state.recipe)
+        }
+        console.log('state.recipe-decrease' + state.recipe)
+    } else if (e.target.matches('.btn-increase, .btn-increase *')) {
+        //increase button is click
+        state.recipe.updateServings('inc')
+        recipeView.updateServingsIngredients(state.recipe)
+        console.log('state.recipe-increase' + state.recipe)
+    } else if (e.target.matches('.recipe__btn-add,.recipe__btn-add *')) {
+        //add ingredients to shoppin glist
+        controlList();
+    } else if (e.target.matches('.recipe__love, .recipe__love *')) {
+        // Like controoler
+        controlLike();
+    }
+
+    
+})
+
+

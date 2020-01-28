@@ -15,13 +15,19 @@ export const clearInput = () => {
 }
 
 export const highlightSelected= id => {
-    document.querySelector(`a[href="#${id}]"`).classList.add('results__link--active')
+
+    const resultstArr = Array.from(document.querySelectorAll('.results__link'))
+    resultstArr.forEach( el => {
+        el.classList.remove('results__link--active')
+        
+    })
+    document.querySelector(`a[href="#${id}"]`).classList.add('results__link--active')
 }
 
 //'pasta with tomato and spinach
 // acc : 0 / acc+cur.length = 5 / newTitle = ['pasta']
 // acc : 5 / acc+cur.length = 9 / newTitle = ['pasta','with']
-const limitRecipeTitle = (title, limit = 17) => {
+export const limitRecipeTitle = (title, limit = 17) => {
     const newTitle = [];
     if (title.length > limit) {
         title.split(' ').reduce((acc, cur) => {
