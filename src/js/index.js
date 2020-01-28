@@ -32,7 +32,7 @@ import Likes from './models/Likes'
  */
 
 const state = {}
-window.state = state;
+
 /**search control */
 const controlSearch = async () => {
    const query = searchView.getInput();
@@ -186,7 +186,7 @@ window.addEventListener('load', () => {
     state.likes = new Likes();
     
     state.likes.readStorage();
-    console.log('state.likes.getNumLikes' + state.likes.getNumLikes)
+    
     likesView.toggleLikeMenu(state.likes.getNumLikes())
 
     //render the existing likes
